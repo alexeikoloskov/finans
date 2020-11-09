@@ -1,4 +1,8 @@
 from robot import get_instrument
 from robot import get_operation
 
-get_instrument.one(14)
+def jdbf():
+    return get_instrument.all()
+
+x = jdbf()
+print(x[0])

@@ -60,17 +60,26 @@ class get_instrument():
     @staticmethod
     def all():
         pf = client.portfolio.portfolio_get()
+        position = pf.payload.positions
         how_much = int(len(pf.payload.positions))
-        i=0
-        print(how_much, ' - Общее количество инструментов')
-        while how_much-1 >= i:
-            print('№ ', i+1)
-            print('value:', pf.payload.positions[i].average_position_price.value)
-            print('currency:', pf.payload.positions[i].average_position_price.currency)
-            print('balance:', pf.payload.positions[i].balance)
-            print('ticker:', pf.payload.positions[i].ticker)
-            print('name:', pf.payload.positions[i].name)
-            i+=1
+        k=0
+        value, currency, balance, ticker, name, amount_all = [], [], [], [], [], []
+        # print(how_much, ' - Общее количество инструментов')
+        for i in position:
+            # print('№ ', k+1)
+            # print('value:', i.average_position_price.value)
+            # print('currency:', i.average_position_price.currency)
+            # print('balance:', i.balance)
+            # print('ticker:', i.ticker)
+            # print('name:', i.name)
+            value.append(i.average_position_price.value)
+            currency.append(i.average_position_price.currency)
+            balance.append(i.balance)
+            ticker.append(i.ticker)
+            name.append(i.name)
+            amount_all.append(i.average_position_price.value*i.balance)
+            k+=1
+        return value, currency, balance, ticker, name, amount_all
 
 
 
@@ -156,7 +165,7 @@ class get_operation():
                     print(get.payload.name)
             print('--------------')
 
-    def dividend(year,month,day=1,hour=0,minute=0,second=1,zone='Europe/Moscow'):
+    def dividend(month,year=2020,day=1,hour=0,minute=0,second=1,zone='Europe/Moscow'):
         # Весь список операций
         d1 = datetime(year, month, day, hour, minute, second,
                       tzinfo=timezone(zone))  # timezone нужно указывать. Иначе - ошибка
@@ -184,7 +193,7 @@ class get_operation():
                 continue
             print('--------------')
 
-get_operation.dividend(2020, 10)
+# get_operation.dividend(10)
 
 # get_operation.one(2)
 # get_operation.all(2020, 5, 25)
