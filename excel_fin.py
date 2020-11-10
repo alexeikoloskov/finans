@@ -13,15 +13,20 @@ x = get_instrument.all()
 # print(len(x[4]))
 # print(x[4])
 
-value = pd.Series(x[0], name='Текущая цена')
+value = pd.Series(x[0], name='Средняя цена покупки')
 currency = pd.Series(x[1], name='Валюта')
 balance = pd.Series(x[2], name='Кол-во акций')
 ticker = pd.Series(x[3], name='Тикер')
 name = pd.Series(x[4], name='Название')
 amount_all = pd.Series(x[5], name='Стоимость ин-та в п-ле')
+current_amount = pd.Series(x[6], name='Текущая стоимость ин-та')
+current_amount_all = pd.Series(x[7], name='Текущая общая стоимость')
 
-df = pd.concat([name, ticker, balance, value, currency, amount_all], axis=1)
+pd.set_option('display.max_colwidth', None)
+pd.set_option('display.width', 1000)
+df = pd.concat([name, ticker, balance, value, amount_all, currency, current_amount, current_amount_all], axis=1)
 
+df.round(2)
 df.to_excel('example.xlsx')
 
 # df = pd.DataFrame({

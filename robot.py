@@ -8,6 +8,13 @@ client = openapi.api_client(token)
 '1364526508:AAElJt4zNg63ViKX07ogx1fCjy3OAImiSqo'
 
 
+def round_number(self):
+    try:
+        self.round(2)
+    except:
+        pass
+    return self
+
 
 class get_instrument():
     def price_dollar(i=14):  # i - какой доллар в портфеле
@@ -63,7 +70,7 @@ class get_instrument():
         position = pf.payload.positions
         how_much = int(len(pf.payload.positions))
         k=0
-        value, currency, balance, ticker, name, amount_all = [], [], [], [], [], []
+        value, currency, balance, ticker, name, amount_all, current_amount, current_amount_all = [], [], [], [], [], [], [], []
         # print(how_much, ' - Общее количество инструментов')
         for i in position:
             # print('№ ', k+1)
@@ -72,14 +79,20 @@ class get_instrument():
             # print('balance:', i.balance)
             # print('ticker:', i.ticker)
             # print('name:', i.name)
+            # print(i)
             value.append(i.average_position_price.value)
             currency.append(i.average_position_price.currency)
             balance.append(i.balance)
             ticker.append(i.ticker)
             name.append(i.name)
-            amount_all.append(i.average_position_price.value*i.balance)
+            aa = i.average_position_price.value * i.balance
+            ca = (i.average_position_price.value*i.balance+i.expected_yield.value)/i.balance
+            caa = i.average_position_price.value*i.balance+i.expected_yield.value
+            amount_all.append(round_number(aa))
+            current_amount.append(round_number(ca))
+            current_amount_all.append(round_number(caa))
             k+=1
-        return value, currency, balance, ticker, name, amount_all
+        return value, currency, balance, ticker, name, amount_all, current_amount, current_amount_all
 
 
 
@@ -192,6 +205,9 @@ class get_operation():
             else:
                 continue
             print('--------------')
+
+
+
 
 # get_operation.dividend(10)
 
