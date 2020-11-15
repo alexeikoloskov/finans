@@ -1,9 +1,12 @@
 import xlrd
 import xlwt
-import openpyxl
+from openpyxl import Workbook
+from openpyxl import load_workbook
 import math
 import pandas as pd
 from robot import get_instrument
+from robot import get_operation
+from pprint import pprint
 
 x = get_instrument.all()
 # print(len(x[0]))
@@ -22,56 +25,50 @@ amount_all = pd.Series(x[5], name='Стоимость ин-та в п-ле')
 current_amount = pd.Series(x[6], name='Текущая стоимость ин-та')
 current_amount_all = pd.Series(x[7], name='Текущая общая стоимость')
 
-pd.set_option('display.max_colwidth', None)
-pd.set_option('display.width', 1000)
 df = pd.concat([name, ticker, balance, value, amount_all, currency, current_amount, current_amount_all], axis=1)
 
-df.round(2)
+pd.set_option('display.width', 500)
+
+df.round(1)
 df.to_excel('example.xlsx')
 
-# df = pd.DataFrame({
-# 'number': [],
-# 'value': x[0],
-# 'currency': x[1],
-# 'balance': x[2],
-# 'ticker': x[3],
-# 'name': x[4]
-# })
-# try:
-#     df.to_excel('example.xlsx')
-# except:
-#     print('ups...')
-# file = 'fin.xlsx'
-#
-# my_wb = openpyxl.Workbook()
-# my_sheet = my_wb.active
-# b2, c2, d2, e2, f2, g2, h2 = my_sheet['B2'], my_sheet['C2'], my_sheet['D2'], my_sheet['E2'], my_sheet['F2'], \
-#                              my_sheet['G2'], my_sheet['H2']
-# b2.value, c2.value, d2.value, e2.value, f2.value, g2.value, h2.value  = 'Название', 'Валюта', 'Текущая стоимость', 'По сколько покупал',\
-#                                                                         'Кол-во бумаг', 'Общая текущая стоимость', 'Сколько в +'
-#
-
-# c2 = my_sheet['C2']
-# c2.value = 'Валюта'
-# d2 = my_sheet['D2']
-# d2.value = ''
-# e2 = my_sheet
+col = 12
+row = 2
+name_row = 1
+date_col = col
+price_col = col+1
+currency_col = col+2
+price_rub_col = col+3
 
 
-# my_wb.save(file)
+v = get_operation.dividend()
+pprint(v)
+wb = load_workbook('example.xlsx')
+ws = wb.active
+for i in v:
+    enter_row = 3
+    ws.cell(column=col, row=name_row).value=i
+    ws.cell(column=date_col, row=row).value='date'
+    ws.cell(column=price_col, row=row).value='price'
+    ws.cell(column=currency_col, row=row).value='currency'
+    ws.cell(column=price_rub_col, row=row).value='price_rub'
+    for val in v[i]:
+        pprint(v[i])
+        for s in val:
+            pprint(val)
+            for z in val[s]:
+                ws.cell(column=date_col, row=enter_row).value=z[0]
+                ws.cell(column=price_col, row=enter_row).value = z[1]
+                ws.cell(column=currency_col, row=enter_row).value = z[2]
+                try:
+                    ws.cell(column=price_rub_col, row=enter_row).value = z[4]
+                except:
+                    ws.cell(column=price_rub_col, row=enter_row).value = ' - '
+                enter_row += 1
+        col+=5
+wb.save("example.xlsx")
 
 
-# my_wb = openpyxl.load_workbook(file).active
-#
-# c1 = my_wb.cell(row=1,column=1)
-# c1.value = 'хей'
-#открываем файл
-# rb = xlrd.open_workbook("C:\Users\79996\PycharmProjects\untitled\fin.xlsx",formatting_info=True)
-# sheet = rb.sheet_by_index(0)
 
-# wb = xlwt.Workbook()
-# ws = wb.add_sheet('A Test Sheet')
-#
-# sg = wb.get_active_sheet(file)
-# sg.write(0, 1 ,'hey')
+
 

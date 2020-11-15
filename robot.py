@@ -1,6 +1,7 @@
 from openapi_client import openapi
 from datetime import datetime
 from pytz import timezone
+from pprint import pprint
 
 token = 't.LXkqE4m5tEHEG370oGguujHO08FZowekQlSdHBxi6dmqNX6CNdecnE4Ow0hDASVxvq9wyoZoaJxia6NXMNeFYw'
 client = openapi.api_client(token)
@@ -178,38 +179,51 @@ class get_operation():
                     print(get.payload.name)
             print('--------------')
 
-    def dividend(month,year=2020,day=1,hour=0,minute=0,second=1,zone='Europe/Moscow'):
+    def dividend(month=1,year=2020,day=1,hour=0,minute=0,second=1,zone='Europe/Moscow'):
         # Весь список операций
         d1 = datetime(year, month, day, hour, minute, second,
                       tzinfo=timezone(zone))  # timezone нужно указывать. Иначе - ошибка
         d2 = datetime.now(tz=timezone(zone))  # По настоящее время
         ops = client.operations.operations_get(_from=d1.isoformat(), to=d2.isoformat())
-        print('--------------')
+        list_inst = get_instrument.all()
+        list_name = {}
+        for i in list_inst[4]:
+            list_name.update({i: [{'Dividend': [], 'TaxDividend': []}]})
+            lll = str(i) + 'div_list'
+            m = globals()[lll] = []
+            kkk = str(i) + 'taxDiv_list'
+            t = globals()[kkk] = []
         for op in ops.payload.operations: # Перебираем операции
             if op.operation_type == 'Dividend':
-                print(op.operation_type)
-                print(op.date)
-                print(op.currency,': ',op.payment)
-                if op.currency == 'USD':
+                a = client.market.market_search_by_figi_get(op.figi)
+                name = a.payload.name
+                if op.currency == 'USD':  # Если диведенты в $ переводим в рубли и добавляем в список
                     price_dollar = get_instrument.price_dollar()
                     price_in_rub = price_dollar * op.payment
-                    print('В рублях: ',price_in_rub)
-                name = client.market.market_search_by_figi_get(op.figi)
-                print(name.payload.name)
+                    try:
+                        list_name[name][0][op.operation_type].append([op.date.strftime('%d.%m.%Y'), round(op.payment, 1), op.currency, round(int(price_in_rub), 1)])
+                    except:
+                        list_name.update({name: [{op.operation_type: [[op.date.strftime('%d.%m.%Y'), round(op.payment, 1), op.currency, round(int(price_in_rub), 1)]]}]})
+                else:
+                    get_operation.kabsfj(list_name, name, op)
             elif op.operation_type == 'TaxDividend':
-                print(op.operation_type)
-                print(op.date)
-                print(op.currency, ': ', op.payment)
-                name = client.market.market_search_by_figi_get(op.figi)
-                print(name.payload.name)
+                a = client.market.market_search_by_figi_get(op.figi)
+                name = a.payload.name
+                get_operation.kabsfj(list_name, name, op)
             else:
                 continue
-            print('--------------')
+        pprint(list_name)
+        return list_name
+
+    @staticmethod
+    def kabsfj(list_name, name, op):
+        try:
+            list_name[name][0][op.operation_type].append([op.date.strftime('%d.%m.%Y'), round(op.payment, 1), op.currency])
+        except:
+            list_name.update({name: [{op.operation_type: [[op.date.strftime('%d.%m.%Y'), round(op.payment, 1), op.currency]]}]})
 
 
-
-
-# get_operation.dividend(10)
+get_operation.dividend()
 
 # get_operation.one(2)
 # get_operation.all(2020, 5, 25)
