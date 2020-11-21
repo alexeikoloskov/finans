@@ -74,7 +74,7 @@ class get_instrument():
         position = pf.payload.positions
         how_much = int(len(pf.payload.positions))
         k = 0
-        value, currency, balance, ticker, name, amount_all, current_amount, current_amount_all = [], [], [], [], [], [], [], []
+        value, currency, balance, ticker, name, amount_all, current_amount, current_amount_all, instrument_type = [], [], [], [], [], [], [], [], []
         # print(how_much, ' - Общее количество инструментов')
         for i in position:
             # print('№ ', k+1)
@@ -95,8 +95,9 @@ class get_instrument():
             amount_all.append(round_number(aa))
             current_amount.append(round_number(ca))
             current_amount_all.append(round_number(caa))
+            instrument_type.append(i.instrument_type)
             k += 1
-        return value, currency, balance, ticker, name, amount_all, current_amount, current_amount_all
+        return value, currency, balance, ticker, name, amount_all, current_amount, current_amount_all, instrument_type
 
 
 # Получить список опреций в портфеле
@@ -190,11 +191,13 @@ class get_operation():
         ops = client.operations.operations_get(_from=d1.isoformat(), to=d2.isoformat())
         list_inst = get_instrument.all()
         list_name = {}
-        for i in list_inst[4]:
-            if i == 'ЛЕГЕНДА выпуск 2':
+        for i, k in zip(list_inst[4], list_inst[8]):
+            if k == 'Bond':
                 list_name.update({i: [{'Coupon': [], 'TaxCoupon': []}]})
-            else:
+            elif k == 'Stock':
                 list_name.update({i: [{'Dividend': [], 'TaxDividend': []}]})
+            else:
+                pass
             lll = str(i) + 'div_list'
             m = globals()[lll] = []
             kkk = str(i) + 'taxDiv_list'
@@ -203,12 +206,12 @@ class get_operation():
             if op.operation_type == 'Dividend':
                 a = client.market.market_search_by_figi_get(op.figi)
                 name = a.payload.name
-                if op.currency == 'USD':  # Если диведенты в $ переводим в рубли и добавляем в список
-                    price_dollar = get_instrument.price_dollar()
-                    price_in_rub = price_dollar * op.payment
-                    get_operation.list_update(list_name, name, op, price_in_rub)
-                else:
-                    get_operation.list_update(list_name, name, op)
+                # if op.currency == 'USD':  # Если диведенты в $ переводим в рубли и добавляем в список
+                #     price_dollar = get_instrument.price_dollar()
+                #     price_in_rub = price_dollar * op.payment
+                #     get_operation.list_update(list_name, name, op, price_in_rub)
+                # else:
+                get_operation.list_update(list_name, name, op)
             elif op.operation_type == 'Coupon':
                 a = client.market.market_search_by_figi_get(op.figi)
                 name = a.payload.name
@@ -223,8 +226,6 @@ class get_operation():
                 get_operation.list_update(list_name, name, op)
             else:
                 continue
-        pprint(list_name)
-        print('----------------------------')
         list_company_del, list_op_del = [], []
         for i in list_name:
             for m in list_name[i][0]:
@@ -236,8 +237,8 @@ class get_operation():
         for a in list(list_name.keys()):
             if not list_name[a][0]:
                 del list_name[a]
-        pprint(list_name)
-        return list_name
+        result = get_operation.subtraction_taxDiv(list_name)
+        return result
 
     @staticmethod
     def list_update(list_name, name, op, price_in_rub=0):
@@ -256,13 +257,67 @@ class get_operation():
                 list_name.update(
                     {name: [{op.operation_type: [[op.date.strftime('%d.%m.%Y'), round(op.payment, 1), op.currency]]}]})
 
+    @staticmethod
+    def subtraction_taxDiv(list):
+        lis = {}
+        for i in list:
+            divident, divDate, currency, taxDividenet = [], [], [], []
+            for m in list[i][0]:
+                if list[i][0][m][0][2] != 'USD':
+                    if m == 'Dividend':
+                        for l in list[i][0][m]:
+                            divident.append(l[1])
+                            divDate.append(l[0])
+                            currency.append(l[2])
+                    elif m == 'Coupon':
+                        for l in list[i][0][m]:
+                            divident.append(l[1])
+                            divDate.append(l[0])
+                            currency.append(l[2])
+                    else:
+                        for l in list[i][0][m]:
+                            taxDividenet.append(l[1])
+                else:
+                    result_usd = []
+                    for t in list[i][0][m]:
+                        divident.append(t[1])
+                        divDate.append(t[0])
+                        currency.append(t[2])
+                    kek = []
+                    for x, y, z in zip(divident, divDate, currency):
+                        if len(list[i][0][m]) == 1:
+                            kek.append(x)
+                            kek.append(y)
+                            kek.append(z)
+                        else:
+                            kek.append([x, y, z])
+            if taxDividenet:
+                    result = [x+y for x, y in zip(divident, taxDividenet)]
+                    a = []
+                    if len(result) > 1:
+                        g = 0
+                        for n in result:
+                            kek = []
+                            kek.append(n)
+                            kek.append(list[i][0][m][g][0])
+                            kek.append(list[i][0][m][g][2])
+                            a.append(kek)
+                            g += 1
+                        lis.update({i: a})
+                    else:
+                        result.append(l[0])
+                        result.append(l[2])
+                        lis.update({i: result})
+            else:
+                lis.update({i: kek})
+        return lis
 
 get_operation.dividend()
 #
 # get_operation.in_date()
 
-# get_operation.one(2)
+# get_operation.one(10)
 # get_operation.all(2020, 5, 25)
 # get_operation.in_date(2020,4,1,2020,4,29)
-# get_instrument.one(7)
+# get_instrument.one(9)
 # get_instrument.all()
