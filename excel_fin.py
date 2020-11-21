@@ -2,6 +2,9 @@ from openpyxl import load_workbook
 import pandas as pd
 from robot import get_instrument
 from robot import get_operation
+import openpyxl
+from openpyxl.worksheet.dimensions import ColumnDimension, DimensionHolder
+from openpyxl.utils import get_column_letter
 
 
 x = get_instrument.all()
@@ -11,15 +14,16 @@ currency = pd.Series(x[1], name='Валюта')
 balance = pd.Series(x[2], name='Кол-во акций')
 ticker = pd.Series(x[3], name='Тикер')
 name = pd.Series(x[4], name='Название')
+instrument_type = pd.Series(x[8], name='Тип')
 amount_all = pd.Series(x[5], name='Стоимость ин-та в п-ле')
 current_amount = pd.Series(x[6], name='Текущая стоимость ин-та')
 current_amount_all = pd.Series(x[7], name='Текущая общая стоимость')
 
-df = pd.concat([name, ticker, balance, value, amount_all, currency, current_amount, current_amount_all], axis=1)
+df = pd.concat([name, instrument_type, ticker, balance, value, amount_all, currency, current_amount, current_amount_all], axis=1)
 df.round(1)
 df.to_excel('example.xlsx')
 
-col = 13
+col = 14
 title_row = 1
 k = 1
 
@@ -45,8 +49,12 @@ for i in v:
                 ws.cell(column=colomn, row=row).value = d
                 colomn+=1
         colomn +=1
-wb.save("example.xlsx")
 
+for i in [2, 3, 13]:
+    ws.column_dimensions[get_column_letter(i)].bestFit = True
+    ws.column_dimensions[get_column_letter(i)].auto_size = True
+
+wb.save("example.xlsx")
 
 
 

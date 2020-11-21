@@ -95,7 +95,16 @@ class get_instrument():
             amount_all.append(round_number(aa))
             current_amount.append(round_number(ca))
             current_amount_all.append(round_number(caa))
-            instrument_type.append(i.instrument_type)
+            if i.instrument_type == 'Stock':
+                instrument_type.append('Акции')
+            elif i.instrument_type == 'Bond':
+                instrument_type.append('Облигации')
+            elif i.instrument_type == 'Etf':
+                instrument_type.append('ETF')
+            elif i.instrument_type == 'Currency':
+                instrument_type.append('Валюта')
+            else:
+                instrument_type.append(' - ')
             k += 1
         return value, currency, balance, ticker, name, amount_all, current_amount, current_amount_all, instrument_type
 
@@ -192,9 +201,9 @@ class get_operation():
         list_inst = get_instrument.all()
         list_name = {}
         for i, k in zip(list_inst[4], list_inst[8]):
-            if k == 'Bond':
+            if k == 'Облигации':
                 list_name.update({i: [{'Coupon': [], 'TaxCoupon': []}]})
-            elif k == 'Stock':
+            elif k == 'Акции':
                 list_name.update({i: [{'Dividend': [], 'TaxDividend': []}]})
             else:
                 pass
@@ -206,11 +215,6 @@ class get_operation():
             if op.operation_type == 'Dividend':
                 a = client.market.market_search_by_figi_get(op.figi)
                 name = a.payload.name
-                # if op.currency == 'USD':  # Если диведенты в $ переводим в рубли и добавляем в список
-                #     price_dollar = get_instrument.price_dollar()
-                #     price_in_rub = price_dollar * op.payment
-                #     get_operation.list_update(list_name, name, op, price_in_rub)
-                # else:
                 get_operation.list_update(list_name, name, op)
             elif op.operation_type == 'Coupon':
                 a = client.market.market_search_by_figi_get(op.figi)
