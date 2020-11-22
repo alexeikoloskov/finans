@@ -71,10 +71,15 @@ class get_instrument():
     @staticmethod
     def all():
         pf = client.portfolio.portfolio_get()
+        pf2 = client.portfolio.portfolio_currencies_get()
         position = pf.payload.positions
+        currencies = pf2.payload.currencies
+        for c in currencies:
+            if c.currency == 'RUB':
+                free_rub = c.balance
         how_much = int(len(pf.payload.positions))
         k = 0
-        value, currency, balance, ticker, name, amount_all, current_amount, current_amount_all, instrument_type = [], [], [], [], [], [], [], [], []
+        value, currency, balance, ticker, name, amount_all, current_amount, current_amount_all, instrument_type, amount_all_inst = [], [], [], [], [], [], [], [], [], []
         # print(how_much, ' - Общее количество инструментов')
         for i in position:
             # print('№ ', k+1)
@@ -89,12 +94,18 @@ class get_instrument():
             balance.append(i.balance)
             ticker.append(i.ticker)
             name.append(i.name)
-            aa = i.average_position_price.value * i.balance
-            ca = (i.average_position_price.value * i.balance + i.expected_yield.value) / i.balance
-            caa = i.average_position_price.value * i.balance + i.expected_yield.value
-            amount_all.append(round_number(aa))
-            current_amount.append(round_number(ca))
-            current_amount_all.append(round_number(caa))
+            aa = round(i.average_position_price.value * i.balance, 2)
+            ca = round((i.average_position_price.value * i.balance + i.expected_yield.value) / i.balance, 2)
+            caa = round(i.average_position_price.value * i.balance + i.expected_yield.value, 2)
+            amount_all.append(aa)
+            current_amount.append(ca)
+            current_amount_all.append(caa)
+            if i.average_position_price.currency == 'USD':
+                value_baks = get_instrument.price_dollar()
+                value_in_rub = round(caa * value_baks, 2)
+                amount_all_inst.append(value_in_rub)
+            else:
+                amount_all_inst.append(caa)
             if i.instrument_type == 'Stock':
                 instrument_type.append('Акции')
             elif i.instrument_type == 'Bond':
@@ -106,7 +117,8 @@ class get_instrument():
             else:
                 instrument_type.append(' - ')
             k += 1
-        return value, currency, balance, ticker, name, amount_all, current_amount, current_amount_all, instrument_type
+        aai = sum(amount_all_inst)
+        return value, currency, balance, ticker, name, amount_all, current_amount, current_amount_all, instrument_type, aai, free_rub
 
 
 # Получить список опреций в портфеле
@@ -316,7 +328,7 @@ class get_operation():
                 lis.update({i: kek})
         return lis
 
-get_operation.dividend()
+# get_operation.dividend()
 #
 # get_operation.in_date()
 
@@ -324,4 +336,4 @@ get_operation.dividend()
 # get_operation.all(2020, 5, 25)
 # get_operation.in_date(2020,4,1,2020,4,29)
 # get_instrument.one(9)
-# get_instrument.all()
+get_instrument.all()
