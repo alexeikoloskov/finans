@@ -5,6 +5,8 @@ from robot import get_instrument
 from robot import get_operation
 from openpyxl.utils import get_column_letter
 from openpyxl.styles import Border, Side, Font
+from datetime import datetime
+from pytz import timezone
 
 
 def list_alphabet():
@@ -69,7 +71,7 @@ def set_table_2(list):
 wb = Workbook()
 ws = wb.create_sheet('первая страница', 0)
 
-name_fail = "example.xlsx"
+name_fail = (str(datetime.now(tz=timezone('Europe/Moscow')).strftime("%d-%m-%Y"))+'.xlsx')
 
 x = get_instrument.all()
 v = get_operation.dividend()
@@ -77,8 +79,6 @@ v = get_operation.dividend()
 col = 11
 title_row = 1
 k = 1
-
-print(list_alphabet())
 
 medium_border = Border(left=Side(style='medium'),
                      right=Side(style='medium'),
@@ -106,7 +106,6 @@ ws.cell(column=col + 1, row=title_row).border = medium_border
 ws.cell(column=col + 2, row=title_row).value = 'currency'
 ws.cell(column=col + 2, row=title_row).border = medium_border
 ws.column_dimensions[bukva[col-1]].width = 20
-print(list_alphabet()[col+1])
 
 for i in v:
     try:

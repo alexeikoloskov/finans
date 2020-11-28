@@ -3,7 +3,20 @@ from datetime import datetime
 from pytz import timezone
 from pprint import pprint
 
-token = 't.LXkqE4m5tEHEG370oGguujHO08FZowekQlSdHBxi6dmqNX6CNdecnE4Ow0hDASVxvq9wyoZoaJxia6NXMNeFYw'
+try:
+    with open('token.txt', 'r') as f:
+        data = f.read()
+        f.close()
+except:
+    ok = input('Файл не найден! Создайте файл и введите 1: ')
+    if ok == 1 or '1':
+        with open('token.txt', 'r') as f:
+            data = f.read()
+            f.close()
+    else:
+        print('Вы так ничего и не ввели')
+
+token = data
 client = openapi.api_client(token)
 
 '1364526508:AAElJt4zNg63ViKX07ogx1fCjy3OAImiSqo'
