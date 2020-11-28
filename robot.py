@@ -19,8 +19,6 @@ except:
 token = data
 client = openapi.api_client(token)
 
-'1364526508:AAElJt4zNg63ViKX07ogx1fCjy3OAImiSqo'
-
 
 def round_number(self):
     try:
